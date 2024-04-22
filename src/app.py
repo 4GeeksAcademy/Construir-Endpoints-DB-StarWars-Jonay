@@ -126,9 +126,6 @@ def create_favorite_people(id):
     check_user = User.query.filter_by(id=body["id"]).first()
     people_exist = Characters.query.filter_by(id=id).first()
 
-    # if check_user and planet_exist is None:
-    #     return jsonify({"msg":"planet and user don't exist"}), 404
-    # else:
     if people_exist is None:
         return jsonify({"msg":"Character not exist"}), 404
     else:
@@ -145,17 +142,18 @@ def create_favorite_people(id):
                 return jsonify({"msg":"Favorite character already exists"}), 400
             
 #Enpoint DELETE añadir personaje a favoritos--------------------------------------------------------------------------------
-# @app.route('/favorite/people/<int:id>', methods=['DELETE'])
-# def delete_favorite_people(id):
+@app.route('/favorite/people/<int:id>', methods=['DELETE'])
+def delete_favorite_people(id):
     
-#     del_favorite_character = FavoritesCharacters.query.filter_by(id=id, user_id=["id"]).first()
-#     if del_favorite_character is None:
-#         delete_favorite_people = FavoritesCharacters(user_id=["id"], id=id)
-#         db.session.delete(delete_favorite_people)
-#         db.session.commit()
-#         return jsonify({"msg":"Favorite character deleted"}), 200
-#     else:
-#         return jsonify({"msg":"Favorite character already delete"}), 400
+    del_favorite_character = FavoritesCharacters.query.filter_by(id=id, user_id=["id"]).first()
+    
+    if del_favorite_character is None:
+        return jsonify({"msg":"Favorite character already delete"}), 400
+    else:
+        delete_favorite_people = FavoritesCharacters(user_id=["id"], id=id)
+        db.session.delete(delete_favorite_people)
+        db.session.commit()
+        return jsonify({"msg":"Favorite character deleted"}), 200
 
 #Endpoint ALL Planets--------------------------------------------------------------------------------------------------
 @app.route('/planets', methods=['GET'])
