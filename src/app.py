@@ -116,6 +116,24 @@ def get_one_people(people_id):
         return jsonify({"msg": "No existe el personaje"}), 404
     return jsonify(character.serialize()), 200
 
+@app.route('/favorite/people/<int:id>', methods=['POST'])
+def create_favorite_people(id):
+    # this is how you can use the Family datastructure by calling its methods
+    body = request.json
+    print(body)
+
+    check_favorite_people = FavoritesCharacters.query.filter_by(characters_id=id, user_id=body["id"]).first()
+    print(check_favorite_people)
+
+    if check_favorite_people is None:
+        new_favorite_people = FavoritesCharacters(user_id=body["id"], characters_id=id)
+        db.session.add(new_favorite_people)
+        db.session.commit()
+        return jsonify({"msg":"Favorite character added"}), 200
+    else:
+        return jsonify({"msg":"Favorite character exist"}), 400
+
+# new_favorite_people = Characters(id=body["id"], name=body["name"], age=body["age"], heigh=body["heigh"])
 
 #Endpoint ALL Planets
 @app.route('/planets', methods=['GET'])
@@ -145,6 +163,23 @@ def get_one_planet(planet_id):
     return jsonify(planet.serialize()), 200
 
 
+@app.route('/favorite/planets/<int:id>', methods=['POST'])
+def create_favorite_planet(id):
+    # this is how you can use the Family datastructure by calling its methods
+    body = request.json
+    print(body)
+
+    check_favorite_planet = FavoritesPlanets.query.filter_by(planets_id=id, user_id=body["id"]).first()
+    print(check_favorite_planet)
+
+    if check_favorite_planet is None:
+        new_favorite_planet = FavoritesPlanets(user_id=body["id"], planets_id=id)
+        db.session.add(new_favorite_planet)
+        db.session.commit()
+        return jsonify({"msg":"Favorite planet added"}), 200
+    else:
+        return jsonify({"msg":"Favorite planet exist"}), 400
+
 #Endpoint ALL Vehicles
 @app.route('/vehicles', methods=['GET'])
 def get_all_vehicles():
@@ -173,6 +208,32 @@ def get_one_vehicle(vehicle_id):
     return jsonify(vehicle.serialize()), 200
 
 
+@app.route('/favorite/vehicles/<int:id>', methods=['POST'])
+def create_favorite_vehicle(id):
+    # this is how you can use the Family datastructure by calling its methods
+    body = request.json
+    print(body)
+
+    check_user = User.query.filter_by(id=body["id"]).first()
+    vehicle_exist = Vehicles.query.filter_by(id=id).first()
+
+    if check_user and vehicle_exist is None:
+        return jsonify({"msg":"Vehicle and user don't exist"}), 404
+    else:
+        if vehicle_exist is None:
+            return jsonify({"msg":"Vehicle not exist"}), 404
+        else:
+            if check_user is None:
+                return jsonify({"msg":"User don't exist"}), 404
+            else:
+                check_favorite_vehicle = FavoritesVehicles.query.filter_by(vehicles_id=id, user_id=body["id"]).first()
+                if check_favorite_vehicle is None:
+                    new_favorite_vehicle = FavoritesVehicles(user_id=body["id"], vehicles_id=id)
+                    db.session.add(new_favorite_vehicle)
+                    db.session.commit()
+                    return jsonify({"msg":"Favorite vehicle added"}), 200
+                else:
+                    return jsonify({"msg":"Favorite vehicle exist"}), 400
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
