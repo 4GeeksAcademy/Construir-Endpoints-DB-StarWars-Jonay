@@ -66,6 +66,7 @@ def get_all_users():
 #ENDPOINT lista de Todos los Favoritos=['GET'])-----------------------------------------------------------------
 @app.route('/users/favorites', methods=['GET'])
 def get_user_favorites():
+
     favorite_character = FavoritesCharacters.query.all()
     character_favorite = list(map(lambda item: item.serialize(), favorite_character))
 
@@ -77,17 +78,50 @@ def get_user_favorites():
 
     if character_favorite == [] and planet_favorite == [] and vehicle_favorite == []:
         return jsonify({"msg":"Empty"}), 404  
+    else:
+        response_body = {
+            "msg": "Ok",
+            "result": [
+                character_favorite, 
+                planet_favorite, 
+                vehicle_favorite
+            ]
+        }
 
-    response_body = {
-        "msg": "Ok",
-        "result": [
-            character_favorite, 
-            planet_favorite, 
-            vehicle_favorite
-        ]
-    }
+        return jsonify(response_body), 200
 
-    return jsonify(response_body), 200
+
+#ENDPOINT lista de Todos los Favoritos=['GET']) de los usuarios-----------------------------------------------------------------
+# @app.route('/users/favorites/<int:user_id>', methods=['GET'])
+# def get_user_favorites():
+
+#     body = request.json
+#     check_user = User.query.filter_by(id=body["id"]).first()
+
+#     favorite_character = FavoritesCharacters.query.all()
+#     character_favorite = list(map(lambda item: item.serialize(), favorite_character))
+
+#     favorite_planet = FavoritesPlanets.query.all()
+#     planet_favorite = list(map(lambda item: item.serialize(), favorite_planet))
+
+#     favorite_vehicle = FavoritesVehicles.query.all()
+#     vehicle_favorite = list(map(lambda item: item.serialize(), favorite_vehicle))
+
+#     if character_favorite == [] and planet_favorite == [] and vehicle_favorite == []:
+#         return jsonify({"msg":"Empty"}), 404  
+#     else:
+#         response_body = {
+#             "msg": "Ok",
+#             "result": [
+#                 # check_user,
+#                 character_favorite, 
+#                 planet_favorite, 
+#                 vehicle_favorite
+#             ]
+#         }
+
+#         return jsonify(response_body), 200
+
 
 
 #Endpoint Todos los Personajes------------------------------------------------------------------------------------------
@@ -118,43 +152,63 @@ def get_one_people(people_id):
 
 #Enpoint POST añadir personaje a favoritos--------------------------------------------------------------------------------
 @app.route('/favorite/people/<int:id>', methods=['POST'])
-def create_favorite_people(id):
+def create_favorite_character(id):
     # this is how you can use the Family datastructure by calling its methods
     body = request.json
     print(body)
 
     check_user = User.query.filter_by(id=body["id"]).first()
-    people_exist = Characters.query.filter_by(id=id).first()
+    character_exist = Characters.query.filter_by(id=id).first()
 
-    if people_exist is None:
+    if character_exist is None:
         return jsonify({"msg":"Character not exist"}), 404
     else:
         if check_user is None:
             return jsonify({"msg":"User don't exist"}), 404
         else:
-            check_favorite_people = FavoritesCharacters.query.filter_by(id=id, user_id=body["id"]).first()
-            if check_favorite_people is None:
-                new_favorite_people = FavoritesCharacters(user_id=body["id"], id=id)
-                db.session.add(new_favorite_people)
+            check_favorite_character = FavoritesCharacters.query.filter_by(id=id, user_id=body["id"]).first()
+            if check_favorite_character is None:
+                new_favorite_character = FavoritesCharacters(user_id=body["id"], id=id)
+                db.session.add(new_favorite_character)
                 db.session.commit()
                 return jsonify({"msg":"Favorite character added"}), 200
             else:
                 return jsonify({"msg":"Favorite character already exists"}), 400
             
-#Enpoint DELETE personaje de favoritos--------------------------------------------------------------------------------
-@app.route('/favorite/people/<int:id>', methods=['DELETE'])
-def delete_favorite_people(id):
+#Enpoint DELETE character de favoritos (con body) Verifica User--------------------------------------------------------------------------------
+@app.route('/favorite/people/<int:people_id>', methods=['DELETE'])
+def delete_favorite_character(people_id):
+    body = request.json
     
-    del_favorite_character = FavoritesCharacters.query.filter_by(id=id).first()
-    print(del_favorite_character)
-    
-    if del_favorite_character is None:
+    check_user = User.query.filter_by(id=body["id"]).first()
+    character_exist = Characters.query.filter_by(id=people_id).first()
+    del_favorite_character = FavoritesCharacters.query.filter_by(characters_id=people_id, user_id=body["id"]).first()
+
+    if character_exist is None:
         return jsonify({"msg":"Favorite character don't exist"}), 404
     else:
-        # delete_favorite_people = FavoritesCharacters(id=id, user_id=["id"])
-        db.session.delete(del_favorite_character)
-        db.session.commit()
-    return jsonify({"msg":"Favorite character deleted"}), 200
+        if check_user is None:
+            return jsonify({"msg":"This user don't exist"}), 404
+        else:
+            db.session.delete(del_favorite_character)
+            db.session.commit()
+        return jsonify({"msg":"Favorite character deleted"}), 200
+
+
+#Enpoint DELETE personaje de favoritos (SENCILLO)--------------------------------------------------------------------------------
+# @app.route('/favorite/people/<int:id>', methods=['DELETE'])
+# def delete_favorite_people(id):
+    
+#     del_favorite_character = FavoritesCharacters.query.filter_by(id=id).first()
+#     print(del_favorite_character)
+    
+#     if del_favorite_character is None:
+#         return jsonify({"msg":"Favorite character don't exist"}), 404
+#     else:
+#         # delete_favorite_people = FavoritesCharacters(id=id, user_id=["id"])
+#         db.session.delete(del_favorite_character)
+#         db.session.commit()
+#     return jsonify({"msg":"Favorite character deleted"}), 200
 
 #Endpoint ALL Planets--------------------------------------------------------------------------------------------------
 @app.route('/planets', methods=['GET'])
@@ -211,20 +265,41 @@ def create_favorite_planet(id):
             else:
                 return jsonify({"msg":"Favorite planet already exists"}), 400
 
-#Enpoint DELETE planeta de favoritos--------------------------------------------------------------------------------
-@app.route('/favorite/planet/<int:id>', methods=['DELETE'])
-def delete_favorite_planet(id):
-    
-    del_favorite_planet = FavoritesPlanets.query.filter_by(id=id).first()
-    print(del_favorite_planet)
-    
-    if del_favorite_planet is None:
+
+#Enpoint DELETE planeta de favoritos (con body) Verifica User--------------------------------------------------------------------------------
+@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
+def delete_favorite_planet(planet_id):
+    body = request.json
+
+    check_user = User.query.filter_by(id=body["id"]).first()
+    planet_exist = Planets.query.filter_by(id=planet_id).first()
+    del_favorite_planet = FavoritesPlanets.query.filter_by(planets_id=planet_id, user_id=body["id"]).first()
+
+    if planet_exist is None:
         return jsonify({"msg":"Favorite planet don't exist"}), 404
     else:
-        # delete_favorite_people = FavoritesCharacters(id=id, user_id=["id"])
-        db.session.delete(del_favorite_planet)
-        db.session.commit()
-    return jsonify({"msg":"Favorite planet deleted"}), 200
+        if check_user is None:
+            return jsonify({"msg":"This user don't exist"}), 404
+        else:
+            db.session.delete(del_favorite_planet)
+            db.session.commit()
+        return jsonify({"msg":"Favorite planet deleted"}), 200
+
+
+
+#Enpoint DELETE planeta de favoritos (SENCILLO)--------------------------------------------------------------------------------
+# @app.route('/favorite/planet/<int:id>', methods=['DELETE'])
+# def delete_favorite_planet(id):
+    
+#     del_favorite_planet = FavoritesPlanets.query.filter_by(id=id).first()
+#     print(del_favorite_planet)
+    
+#     if del_favorite_planet is None:
+#         return jsonify({"msg":"Favorite planet don't exist"}), 404
+#     else:
+#         db.session.delete(del_favorite_planet)
+#         db.session.commit()
+#     return jsonify({"msg":"Favorite planet deleted"}), 200
 
 
 
@@ -285,19 +360,23 @@ def create_favorite_vehicle(id):
             
 
 #Enpoint DELETE vehiculo de favoritos--------------------------------------------------------------------------------
-@app.route('/favorite/vehicle/<int:id>', methods=['DELETE'])
-def delete_favorite_vehicle(id):
-    
-    del_favorite_vehicle = FavoritesVehicles.query.filter_by(id=id).first()
-    print(del_favorite_vehicle)
-    
-    if del_favorite_vehicle is None:
+@app.route('/favorite/vehicle/<int:vehicle_id>', methods=['DELETE'])
+def delete_favorite_vehicle(vehicle_id):
+    body = request.json
+    check_user = User.query.filter_by(id=body["id"]).first()
+    vehicle_exist = Vehicles.query.filter_by(id=vehicle_id).first()
+    del_favorite_vehicle = FavoritesVehicles.query.filter_by(vehicles_id=vehicle_id, user_id=body["id"]).first()
+
+    if vehicle_exist is None:
         return jsonify({"msg":"Favorite vehicle don't exist"}), 404
     else:
-        # delete_favorite_people = FavoritesCharacters(id=id, user_id=["id"])
-        db.session.delete(del_favorite_vehicle)
-        db.session.commit()
-    return jsonify({"msg":"Favorite vehicle deleted"}), 200
+        if check_user is None:
+            return jsonify({"msg":"This user don't exist"}), 404
+        else:
+            # delete_favorite_people = FavoritesCharacters(id=id, user_id=["id"])
+            db.session.delete(del_favorite_vehicle)
+            db.session.commit()
+        return jsonify({"msg":"Favorite vehicle deleted"}), 200
 
 
 
