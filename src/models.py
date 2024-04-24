@@ -9,9 +9,9 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     name = db.Column(db.String(250), nullable=False)
-    surname = db.Column(db.String(250), nullable=False)
-    subscripcion_date = db.Column(db.DateTime(), default=datetime.now())
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+    # surname = db.Column(db.String(250), nullable=False)
+    # subscripcion_date = db.Column(db.DateTime(), default=datetime.now())
+    # is_active = db.Column(db.Boolean(), unique=False, nullable=False)
     favorite_character = db.relationship('FavoritesCharacters', backref='user', lazy=True)
     favorite_planet = db.relationship('FavoritesPlanets', backref='user', lazy=True)
     favorite_vehicle = db.relationship('FavoritesVehicles', backref='user', lazy=True)
@@ -23,8 +23,7 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
-            "name": self.name,
-            "surname": self.name
+            "name": self.name
             # do not serialize the password, its a security breach
         }
 
