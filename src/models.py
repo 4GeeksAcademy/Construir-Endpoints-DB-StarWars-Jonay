@@ -105,10 +105,11 @@ class FavoritesCharacters(db.Model):
         return '<FavoriteCharacters %r>' % self.id
 
     def serialize(self):
+        result = Characters.query.filter_by(id=self.characters_id).first()
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "characters_id": self.characters_id
+            "characters_name": result.serialize()["name"]
             # do not serialize the password, its a security breach
         }
 
@@ -124,10 +125,11 @@ class FavoritesPlanets(db.Model):
         return '<FavoritePlanets %r>' % self.id
 
     def serialize(self):
+        result = Planets.query.filter_by(id=self.planets_id).first()
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "planets_id": self.planets_id
+            "planets_name": result.serialize()["name"]
             # do not serialize the password, its a security breach
         }
     
@@ -143,9 +145,10 @@ class FavoritesVehicles(db.Model):
         return '<FavoriteVehicles %r>' % self.id
 
     def serialize(self):
+        result = Vehicles.query.filter_by(id=self.vehicles_id).first()
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "vehicles_id": self.vehicles_id
+            "vehicles_name": result.serialize()["name"]
             # do not serialize the password, its a security breach
         }
